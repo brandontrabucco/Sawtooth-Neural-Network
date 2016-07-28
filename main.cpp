@@ -29,21 +29,20 @@ typedef struct {
 
 int main() {
 	Dataset dataset;
-	SawtoothNetwork network = SawtoothNetwork(dataset.inputSize);
+	SawtoothNetwork network = SawtoothNetwork(dataset.inputSize, 1.0, 1.0);
 
 	network.addLayer(6);
-	network.addLayer(36);
-	network.addLayer(216);
-	network.addLayer(36);
-	network.addLayer(6);
+	network.addLayer(3);
+	network.addLayer(1);
 
 	for (int i = 0; i < dataset.inputLength; i++) {
 		cout << "t = " << i << endl;
-		vector<double> output = network.feedforward(dataset[i]);
+		vector<double> output = network.classify(dataset[i]);
 		for (int j = 0; j < output.size(); j++) {
 			cout << "output[" << j << "] = " << output[j] << endl;
 		} cout << endl;
 	}
 
+	_fgetchar();
 	return 0;
 }

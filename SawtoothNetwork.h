@@ -15,13 +15,17 @@ using namespace std;
 class SawtoothNetwork {
 private:
 	int inputSize;
+	double learningRate;
+	double decayRate;
+	vector<vector<double> > error;
 	vector<vector<Neuron> > layers;
 	int getPreviousNeurons();
 public:
-	SawtoothNetwork(int is);
+	SawtoothNetwork(int is, double l, double d);
 	virtual ~SawtoothNetwork();
 	void addLayer(int size);
-	vector<double> feedforward(vector<double> input);
+	vector<double> classify(vector<double> input);
+	vector<double> train(vector<double> input, vector<double> target);
 };
 
 #endif /* SAWTOOTHNETWORK_H_ */
