@@ -7,25 +7,25 @@
 
 #include "SawtoothNetwork.h"
 
-SawtoothNetwork::SawtoothNetwork(int is, double l, double d) {
+TimeDelayNetwork::TimeDelayNetwork(int is, double l, double d) {
 	// TODO Auto-generated constructor stub
 	inputSize = is;
 	learningRate = l;
 	decayRate = d;
 }
 
-SawtoothNetwork::~SawtoothNetwork() {
+TimeDelayNetwork::~TimeDelayNetwork() {
 	// TODO Auto-generated destructor stub
 }
 
-int SawtoothNetwork::getPreviousNeurons() {
+int TimeDelayNetwork::getPreviousNeurons() {
 	int sum = inputSize;
-	for (int i = 0; i < layers.size(); i++)
+	for (unsigned int i = 0; i < layers.size(); i++)
 		sum += layers[i].size();
 	return sum;
 }
 
-void SawtoothNetwork::addLayer(int size) {
+void TimeDelayNetwork::addLayer(int size) {
 	vector<Neuron> buffer;
 	vector<double> e;
 	for (int i = 0; i < size; i++) {
@@ -35,7 +35,7 @@ void SawtoothNetwork::addLayer(int size) {
 	error.push_back(e);
 }
 
-vector<double> SawtoothNetwork::classify(vector<double> input) {
+vector<double> TimeDelayNetwork::classify(vector<double> input) {
 	vector<double> output;
 	if (input.size() == inputSize) {
 		// calculate activations in reverse order from top
@@ -56,11 +56,11 @@ vector<double> SawtoothNetwork::classify(vector<double> input) {
 	} else return output;
 }
 
-vector<double> SawtoothNetwork::train(vector<double> input, vector<double> target) {
+vector<double> TimeDelayNetwork::train(vector<double> input, vector<double> target) {
 	if (input.size() == inputSize && target.size() == (layers[layers.size() - 1].size())) {
 		// calculate activations in reverse order from top
 		for (int i = (layers.size() - 1); i >= 0; i--) {
-			for (int j = 0; j < layers[i].size(); j++) {
+			for (int j = 0; j < layers[i].size(); j++) {	// error is here
 				// sum the input from all previous layer neurons
 				vector<double> connections = input;
 				for (int k = 0; k < i; k++)
@@ -77,7 +77,7 @@ vector<double> SawtoothNetwork::train(vector<double> input, vector<double> targe
 					for (int l = 0; l < layers[k].size(); l++)
 						error[k][l] += temp[k * (layers[i].size()) + l];
 			}
-		}
+		} learningRate *= decayRate;
 		return error[layers.size() - 1];
 	}
 	else return vector<double>(0);

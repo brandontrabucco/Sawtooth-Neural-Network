@@ -12,17 +12,17 @@
 #include "Neuron.h"
 using namespace std;
 
-class SawtoothNetwork {
+class TimeDelayNetwork {
 private:
-	int inputSize;
+	unsigned int inputSize;
 	double learningRate;
 	double decayRate;
 	vector<vector<double> > error;
 	vector<vector<Neuron> > layers;
 	int getPreviousNeurons();
 public:
-	SawtoothNetwork(int is, double l, double d);
-	virtual ~SawtoothNetwork();
+	TimeDelayNetwork(int is, double l, double d);
+	virtual ~TimeDelayNetwork();
 	void addLayer(int size);
 	vector<double> classify(vector<double> input);
 	vector<double> train(vector<double> input, vector<double> target);

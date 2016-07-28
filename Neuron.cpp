@@ -44,7 +44,7 @@ double Neuron::forward(vector<double> input) {
 	impulse = input;
 
 	// find the weighted sum of all input
-	for (unsigned int i = 0; i < input.size(); i++) {
+	for (int i = 0; i < input.size(); i++) {
 		sum += input[i] * weight[i];
 	}
 	activation = activate(sum);
@@ -55,7 +55,7 @@ double Neuron::forward(vector<double> input) {
 vector<double> Neuron::backward(double errorPrime, double learningRate) {
 	vector<double> weightedError;
 	// update all weights
-	for (unsigned int i = 0; i < weight.size(); i++) {
+	for (int i = 0; i < weight.size(); i++) {
 		weightedError.push_back(errorPrime * weight[i] * activationPrime);
 		weight[i] -= learningRate * errorPrime * activationPrime * impulse[i];
 	} return weightedError;
