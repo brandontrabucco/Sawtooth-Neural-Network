@@ -38,7 +38,7 @@ vector<double> SawtoothNetwork::feedforward(vector<double> input) {
 			for (int j = 0; j < layers[i].size(); j++) {
 				// sum the input from all previous layer neurons
 				vector<double> connections = input;
-				for (int k = 0; k < ((layers.size() - 1) - i); k++)
+				for (int k = 0; k < (i - 1); k++)
 					for (int l = 0; l < layers[i].size(); l++)
 						connections.push_back(layers[k][l].activation);
 				double result = layers[i][j].forward(connections);
