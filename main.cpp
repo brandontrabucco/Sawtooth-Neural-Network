@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
 
 
 	Dataset dataset;
-	TimeDelayNetwork network = TimeDelayNetwork(dataset.inputSize, learningRate, decayRate);
+	LSTMNetwork network = LSTMNetwork(dataset.inputSize, learningRate, decayRate);
 
 
 	for (int i = 0; i < (argc - 3); i++) {
@@ -105,14 +105,16 @@ int main(int argc, char *argv[]) {
 	for (int e = 0; (e < maxEpoch) && (!e || (((mse1 + mse2)/2) > errorBound)); e++) {
 		vector<double> error;
 		for (int i = 0; i < dataset.inputLength; i++) {
-			error = network.train(dataset.sequence1[i], dataset.target1[i]);
+			if (i == (dataset.inputLength - 1)) error = network.train(dataset.sequence1[i], dataset.target1[0]);
+			else network.classify(dataset.sequence1[i]);
 		}  mse1 = 0;
 		for (int i = 0; i < error.size(); i++)
 			mse1 += error[i] * error[i];
 		mse1 /= error.size() * 2;
 
 		for (int i = 0; i < dataset.inputLength; i++) {
-			error = network.train(dataset.sequence2[i], dataset.target2[i]);
+			if (i == (dataset.inputLength - 1)) error = network.train(dataset.sequence2[i], dataset.target2[0]);
+			else network.classify(dataset.sequence2[i]);
 		} mse2 = 0;
 		for (int i = 0; i < error.size(); i++)
 			mse2 += error[i] * error[i];
