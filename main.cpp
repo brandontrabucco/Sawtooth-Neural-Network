@@ -20,7 +20,14 @@ typedef struct {
 			{0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
 			{0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
 			{0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
-			{0.0, 0.0, 0.0, 0.0, 0.0, 1.0}};
+			{0.0, 0.0, 0.0, 0.0, 0.0, 1.0} };
+	vector<vector<double> > target = {
+		{ 1.0 },
+		{ 1.0 },
+		{ 1.0 },
+		{ 1.0 },
+		{ 1.0 },
+		{ 1.0 } };
 	vector<double> operator[](unsigned int i) {
 		if (i < list.size()) return list[i];
 		else return list[0];
@@ -35,12 +42,15 @@ int main() {
 	network.addLayer(3);
 	network.addLayer(1);
 
-	for (int i = 0; i < dataset.inputLength; i++) {
-		cout << "t = " << i << endl;
-		vector<double> output = network.classify(dataset[i]);
-		for (int j = 0; j < output.size(); j++) {
-			cout << "output[" << j << "] = " << output[j] << endl;
-		} cout << endl;
+	for (int e = 0; e < 100; e++) {
+		vector<double> error;
+		for (int i = 0; i < dataset.inputLength; i++) {
+			error = network.train(dataset[i], dataset.target[i]);
+		} double mse = 0;
+		for (int i = 0; i < error.size(); i++)
+			mse += error[i] * error[i];
+		mse /= error.size() * 2;
+		cout << "Error[" << e << "] = " << mse << endl;
 	}
 
 	_fgetchar();
