@@ -57,7 +57,7 @@ vector<double> Neuron::backward(double errorPrime, double learningRate) {
 	// update all weights
 	for (int i = 0; i < weight.size(); i++) {
 		weightedError.push_back(errorPrime * weight[i] * activationPrime);
-		weight[i] -= learningRate * errorPrime * activationPrime * impulse[i];
+		weight[i] -= learningRate * errorPrime * impulse[i];
 	} return weightedError;
 }
 
