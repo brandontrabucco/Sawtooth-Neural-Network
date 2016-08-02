@@ -34,17 +34,18 @@ struct tm *getDate() {
 int main(int argc, char *argv[]) {
 	cout << "Program initializing" << endl;
 	if (argc < 3) {
-		cout << argv[0] << " <learning rate> <decay rate> <size ...>" << endl;
+		cout << argv[0] << " <learning rate> <decay rate> <overlap> <size ...>" << endl;
 		return -1;
 	}
 
 	int updatePoints = 100;
 	int savePoints = 10;
-	int maxEpoch = 1000;
+	int maxEpoch = 100;
+	int overlap = atof(argv[3]);
 	double errorBound = 0.01;
 	double mse = 0;
 	double learningRate = atof(argv[1]), decayRate = atof(argv[2]);
-	long long networkStart, networkEnd, sumTime = 0, iterationStart;
+	long long networkStart, networkEnd, sumTime = 0;
 
 	const int _day = getDate()->tm_mday;
 
@@ -78,11 +79,11 @@ int main(int argc, char *argv[]) {
 	cout << "KTH Dataset loaded in " << (networkEnd - networkStart) << "msecs" << endl;
 
 
-	SerriformNetwork network = SerriformNetwork(dataset.getFrameSize(), learningRate, decayRate);
+	SerriformNetwork network = SerriformNetwork(dataset.getFrameSize(), overlap, learningRate, decayRate);
 
 
-	for (int i = 0; i < (argc - 3); i++) {
-		network.addLayer(atoi(argv[3 + i]));
+	for (int i = 0; i < (argc - 4); i++) {
+		network.addLayer(atoi(argv[4 + i]));
 	}  network.addLayer(6);
 
 
@@ -96,18 +97,23 @@ int main(int argc, char *argv[]) {
 				if (dataset.isLastTrainingFrame()) {
 					error = network.train(data.frame, OutputTarget::getOutputFromTarget(data.label));
 				} else network.classify(data.frame);
+				//error = network.train(data.frame, OutputTarget::getOutputFromTarget(data.label));
 			}
 		}
 
-		int c = 0;
+		int c = 0, n = 0;
 		while (dataset.nextTestVideo()) {
 			vector<double> output;
 			while (dataset.nextTestFrame()) {
 				DatasetExample data = dataset.getTestFrame();
 				if (dataset.isLastTrainingFrame()) {
 					output = network.classify(data.frame);
+					n++;
 					if (OutputTarget::getTargetFromOutput(output) == data.label) c++;
 				} else network.classify(data.frame);
+				//output = network.classify(data.frame);
+				//n++;
+				//if (OutputTarget::getTargetFromOutput(output) == data.label) c++;
 			}
 		} networkEnd = getMSec();
 
@@ -119,9 +125,9 @@ int main(int argc, char *argv[]) {
 		if (((e + 1) % (maxEpoch / updatePoints)) == 0) {
 			cout << "Epoch " << e << " completed in " << (networkEnd - networkStart) << "msecs" << endl;
 			cout << "Error[" << e << "] = " << mse << endl;
-			cout << "Accuracy[" << e << "] = " << (100.0 * (float)c / (float)dataset.getTestSize()) << endl;
+			cout << "Accuracy[" << e << "] = " << (100.0 * (float)c / (float)n) << endl;
 		} errorData << e << ", " << mse << endl;
-		accuracyData << e << ", " << (100.0 * (float)c / (float)dataset.getTestSize()) << endl;
+		accuracyData << e << ", " << (100.0 * (float)c / (float)n) << endl;
 
 		dataset.reset();
 	}
