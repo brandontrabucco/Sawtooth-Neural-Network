@@ -5,27 +5,29 @@
  *      Author: trabucco
  */
 
-#ifndef SAWTOOTHNETWORK_H_
-#define SAWTOOTHNETWORK_H_
+#ifndef SERRIFORMNETWORK_H_
+#define SERRIFORMNETWORK_H_
 
 #include <vector>
+#include <omp.h>
 #include "Neuron.h"
 using namespace std;
 
-class LSTMNetwork {
+class SerriformNetwork {
 private:
-	unsigned int inputSize;
+	int inputSize;
+	int overlap;
 	double learningRate;
 	double decayRate;
 	vector<vector<double> > error;
-	vector<vector<Neuron> > blocks;
+	vector<vector<Neuron> > layers;
 	int getPreviousNeurons();
 public:
-	LSTMNetwork(int is, double l, double d);
-	virtual ~LSTMNetwork();
+	SerriformNetwork(int is, int o, double l, double d);
+	virtual ~SerriformNetwork();
 	void addLayer(int size);
 	vector<double> classify(vector<double> input);
 	vector<double> train(vector<double> input, vector<double> target);
 };
 
-#endif /* SAWTOOTHNETWORK_H_ */
+#endif /* SERRIFORMNETWORK_H_ */
