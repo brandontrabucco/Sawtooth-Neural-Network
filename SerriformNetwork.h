@@ -10,6 +10,9 @@
 
 #include <vector>
 #include <omp.h>
+#include <iostream>
+#include <string>
+#include <stdlib.h>
 #include "Neuron.h"
 using namespace std;
 
@@ -19,9 +22,10 @@ private:
 	int overlap;
 	double learningRate;
 	double decayRate;
-	vector<vector<double> > error;
+	double **error;
 	vector<vector<Neuron> > layers;
 	int getPreviousNeurons();
+	int getPreviousNeurons(int l);
 public:
 	SerriformNetwork(int is, int o, double l, double d);
 	virtual ~SerriformNetwork();

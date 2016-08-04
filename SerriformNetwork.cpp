@@ -17,11 +17,14 @@ SerriformNetwork::SerriformNetwork(int is, int o, double l, double d) {
 
 SerriformNetwork::~SerriformNetwork() {
 	// TODO Auto-generated destructor stub
+	for (int i = 0; i < layers.size(); i++) {
+		free(error[i]);
+	} free(error);
 }
 
 int SerriformNetwork::getPreviousNeurons() {
 	int sum = 0;
-	for (int i = ((int)layers.size() - 1); i >= ((int)layers.size() - overlap - 2); i--) {
+	for (int i = ((int)layers.size() - 1); i > ((int)layers.size() - overlap - 2); i--) {
 		if (i == -1) sum += inputSize;
 		else if (i >= 0) {
 			sum += (int)layers[i].size();
@@ -30,74 +33,91 @@ int SerriformNetwork::getPreviousNeurons() {
 	return sum;
 }
 
+int SerriformNetwork::getPreviousNeurons(int l) {
+	int sum = 0;
+	for (int i = (l - 1); i > (l - overlap - 2); i--) {
+		if (i == -1) sum += inputSize;
+		else if (i >= 0) {
+			sum += (int)layers[i].size();
+		} //cout << i << " " << sum << endl;
+	}
+	return sum;
+}
+
 void SerriformNetwork::addLayer(int size) {
 	vector<Neuron> buffer;
-	vector<double> e;
 	for (int i = 0; i < size; i++) {
 		buffer.push_back(Neuron(getPreviousNeurons()));
-		e.push_back(0.0);
 	} layers.push_back(buffer);
-	error.push_back(e);
+	if (layers.size() > 1) error = (double **)realloc(error, (sizeof(double *) * layers.size()));
+	else error = (double **)malloc(sizeof(double *) * layers.size());
+	error[layers.size() - 1] = (double *)calloc(size, sizeof(double));
 }
 
 vector<double> SerriformNetwork::classify(vector<double> input) {
-	vector<double> output(layers[layers.size() - 1].size());
-	if ((int)input.size() == inputSize) {
-		// calculate activations in reverse order from top
-		for (int i = (layers.size() - 1); i >= 0; i--) {
-#pragma omp parallel for
-			for (int j = 0; j < (int)layers[i].size(); j++) {
-				// sum the input from all previous layer neurons
-				vector<double> connections;
-				for (int k = (i - overlap - 1); k < i; k++) {
-					if (k == -1) connections = input;
-					else if (k >= 0) for (int l = 0; l < (int)layers[k].size(); l++) {
-						connections.push_back(layers[k][l].activation);
-					}
+	double *output = (double *)malloc(sizeof(double) * layers[layers.size() - 1].size());
+	// calculate activations in reverse order from top
+	for (int i = (layers.size() - 1); i >= 0; i--) {
+		#pragma omp parallel for
+		for (int j = 0; j < (int)layers[i].size(); j++) {
+			// sum the input from all previous layer neurons
+			double *connections = (double *)malloc(sizeof(double) * getPreviousNeurons(i));
+			for (int k = (i - overlap - 1); k < i; k++) {
+				if (k == -1) copy(input.begin(), input.end(), connections);
+				else if (k >= 0) for (int l = 0; l < (int)layers[k].size(); l++) {
+					connections[k * layers[k].size() + l] = (layers[k][l].activation);
 				}
-				// compute the activation
-				double result = layers[i][j].forward(connections);
-				// if at top of network, push to output
-				if (i == ((int)layers.size() - 1)) output[j] = (result);
 			}
+			// compute the activation
+			double activation = layers[i][j].forward(connections);
+			free(connections);
+			// if at top of network, push to output
+			if (i == ((int)layers.size() - 1)) output[j] = (activation);
 		}
-		return output;
-	} else return output;
+	} vector<double> result(&output[0], &output[layers[layers.size() - 1].size() - 1]);
+	free(output);
+	return result;
 }
 
 vector<double> SerriformNetwork::train(vector<double> input, vector<double> target) {
 	if ((int)input.size() == inputSize && (int)target.size() == ((int)layers[layers.size() - 1].size())) {
 		// calculate activations in reverse order from top
 		for (int i = ((int)layers.size() - 1); i >= 0; i--) {
-#pragma omp parallel for
+			#pragma omp parallel for
 			for (int j = 0; j < (int)layers[i].size(); j++) {
 				// sum the input from all previous layer neurons
-				vector<double> connections;
+				double *connections = (double *)malloc(sizeof(double) * getPreviousNeurons(i));	// faulty alloc
+				int offset = 0;
 				for (int k = (i - overlap - 1); k < i; k++) {
-					if (k == -1) connections = input;
-					else if (k >= 0) for (int l = 0; l < (int)layers[k].size(); l++) {
-						connections.push_back(layers[k][l].activation);
+					if (k == -1) {
+						copy(input.begin(), input.end(), connections);
+						offset += inputSize;
+					} else if (k >= 0) for (int l = 0; l < (int)layers[k].size(); l++) {
+						connections[offset] = (layers[k][l].activation);	// illegal write
+						offset++;
 					}
 				}
 				// compute the activation
-				double result = layers[i][j].forward(connections);
+				double activation = layers[i][j].forward(connections);
+				free(connections);
 				// initialize error at top of network
-				if (i == ((int)layers.size() - 1)) error[i][j] = (result - target[j]);
+				if (i == ((int)layers.size() - 1)) error[i][j] = (activation - target[j]);
 				// propogate the error back through node [i][j]
-				vector<double> temp = (layers[i][j].backward(error[i][j], learningRate));	// error is uninitialized
+				double *temp = (layers[i][j].backward(error[i][j], learningRate));
 				// sum the weighted error for all previous nodes
-				int offset = 0;
-#pragma omp critical
+				offset = 0;
+				#pragma omp critical
 				for (int k = (i - overlap - 1); k < i; k++) {
 					if (k == -1) offset += inputSize;
 					else if (k >= 0) for (int l = 0; l < (int)layers[k].size(); l++) {
-						offset++;
 						error[k][l] += temp[offset];
+						offset++;
 					}
-				}
+				} free(temp);
 			}
-		} learningRate *= decayRate;
-		return error[layers.size() - 1];
+		} vector<double> result(&error[layers.size() - 1][0], &error[layers.size() - 1][layers[layers.size() - 1].size() - 1]);
+		learningRate *= decayRate;
+		return result;
 	}
-	else return vector<double>(0);
+	else return vector<double>();
 }

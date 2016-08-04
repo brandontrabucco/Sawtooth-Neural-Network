@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 	ostringstream errorDataFileName;
 	errorDataFileName << "/u/trabucco/Desktop/Temporal_Convergence_Data_Files/" <<
 			(getDate()->tm_year + 1900) << "-" << (getDate()->tm_mon + 1) << "-" << _day <<
-			"_Single-Core-SNN-Error_" << learningRate <<
+			"_Multicore-SNN-Error_" << learningRate <<
 			"-learning_" << decayRate << "-decay.csv";
 	ofstream errorData(errorDataFileName.str(), ios::app);
 	if (!errorData.is_open()) return -1;
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 	ostringstream accuracyDataFileName;
 	accuracyDataFileName << "/u/trabucco/Desktop/Temporal_Convergence_Data_Files/" <<
 			(getDate()->tm_year + 1900) << "-" << (getDate()->tm_mon + 1) << "-" << _day <<
-			"_Single-Core-SNN-Accuracy_" << learningRate <<
+			"_Multicore-SNN-Accuracy_" << learningRate <<
 			"-learning_" << decayRate << "-decay.csv";
 	ofstream accuracyData(accuracyDataFileName.str(), ios::app);
 	if (!accuracyData.is_open()) return -1;
@@ -94,9 +94,14 @@ int main(int argc, char *argv[]) {
 		while (dataset.nextTrainingVideo()) {
 			while (dataset.nextTrainingFrame()) {
 				DatasetExample data = dataset.getTrainingFrame();
-				if (dataset.isLastTrainingFrame()) {
-					error = network.train(data.frame, OutputTarget::getOutputFromTarget(data.label));
-				} else network.classify(data.frame);
+				//if (dataset.isLastTrainingFrame()) {
+				error = network.train(data.frame, OutputTarget::getOutputFromTarget(data.label));
+				mse = 0;
+				for (int i = 0; i < error.size(); i++)
+					mse += error[i] * error[i];
+				mse /= error.size() * 2;
+				cout << "Error: " << mse << endl;
+				//} else network.classify(data.frame);
 				//error = network.train(data.frame, OutputTarget::getOutputFromTarget(data.label));
 			}
 		}
@@ -106,11 +111,11 @@ int main(int argc, char *argv[]) {
 			vector<double> output;
 			while (dataset.nextTestFrame()) {
 				DatasetExample data = dataset.getTestFrame();
-				if (dataset.isLastTrainingFrame()) {
-					output = network.classify(data.frame);
-					n++;
-					if (OutputTarget::getTargetFromOutput(output) == data.label) c++;
-				} else network.classify(data.frame);
+				//if (dataset.isLastTrainingFrame()) {
+				output = network.classify(data.frame);
+				n++;
+				if (OutputTarget::getTargetFromOutput(output) == data.label) c++;
+				//} else network.classify(data.frame);
 				//output = network.classify(data.frame);
 				//n++;
 				//if (OutputTarget::getTargetFromOutput(output) == data.label) c++;
