@@ -94,15 +94,7 @@ int main(int argc, char *argv[]) {
 		while (dataset.nextTrainingVideo()) {
 			while (dataset.nextTrainingFrame()) {
 				DatasetExample data = dataset.getTrainingFrame();
-				//if (dataset.isLastTrainingFrame()) {
 				error = network.train(data.frame, OutputTarget::getOutputFromTarget(data.label));
-				mse = 0;
-				for (int i = 0; i < error.size(); i++)
-					mse += error[i] * error[i];
-				mse /= error.size() * 2;
-				cout << "Error: " << mse << endl;
-				//} else network.classify(data.frame);
-				//error = network.train(data.frame, OutputTarget::getOutputFromTarget(data.label));
 			}
 		}
 
@@ -111,14 +103,9 @@ int main(int argc, char *argv[]) {
 			vector<double> output;
 			while (dataset.nextTestFrame()) {
 				DatasetExample data = dataset.getTestFrame();
-				//if (dataset.isLastTrainingFrame()) {
 				output = network.classify(data.frame);
 				n++;
 				if (OutputTarget::getTargetFromOutput(output) == data.label) c++;
-				//} else network.classify(data.frame);
-				//output = network.classify(data.frame);
-				//n++;
-				//if (OutputTarget::getTargetFromOutput(output) == data.label) c++;
 			}
 		} networkEnd = getMSec();
 
