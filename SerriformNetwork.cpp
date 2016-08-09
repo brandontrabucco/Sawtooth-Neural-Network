@@ -61,11 +61,15 @@ vector<double> SerriformNetwork::classify(vector<double> input) {
 		#pragma omp parallel for
 		for (int j = 0; j < (int)layers[i].size(); j++) {
 			// sum the input from all previous layer neurons
-			double *connections = (double *)malloc(sizeof(double) * getPreviousNeurons(i));
+			double *connections = (double *)malloc(sizeof(double) * getPreviousNeurons(i));	// faulty alloc
+			int offset = 0;
 			for (int k = (i - overlap - 1); k < i; k++) {
-				if (k == -1) copy(input.begin(), input.end(), connections);
-				else if (k >= 0) for (int l = 0; l < (int)layers[k].size(); l++) {
-					connections[k * layers[k].size() + l] = (layers[k][l].activation);
+				if (k == -1) {
+					copy(input.begin(), input.end(), connections);
+					offset += inputSize;
+				} else if (k >= 0) for (int l = 0; l < (int)layers[k].size(); l++) {
+					connections[offset] = (layers[k][l].activation);	// illegal write
+					offset++;
 				}
 			}
 			// compute the activation
@@ -74,7 +78,7 @@ vector<double> SerriformNetwork::classify(vector<double> input) {
 			// if at top of network, push to output
 			if (i == ((int)layers.size() - 1)) output[j] = (activation);
 		}
-	} vector<double> result(&output[0], &output[layers[layers.size() - 1].size() - 1]);
+	} vector<double> result(&output[0], &output[layers[layers.size() - 1].size()]);
 	free(output);
 	return result;
 }
@@ -115,7 +119,7 @@ vector<double> SerriformNetwork::train(vector<double> input, vector<double> targ
 					}
 				} free(temp);
 			}
-		} vector<double> result(&error[layers.size() - 1][0], &error[layers.size() - 1][layers[layers.size() - 1].size() - 1]);
+		} vector<double> result(&error[layers.size() - 1][0], &error[layers.size() - 1][layers[layers.size() - 1].size()]);
 		learningRate *= decayRate;
 		return result;
 	}
