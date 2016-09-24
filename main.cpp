@@ -7,7 +7,6 @@
  */
 
 #include "SerriformNetwork.h"
-#include "DatasetAdapter.h"
 #include "OutputTarget.h"
 #include <vector>
 #include <iostream>
@@ -31,21 +30,58 @@ struct tm *getDate() {
 	return timeObject;
 }
 
+typedef struct {
+	int inputSize = 6;
+	int inputLength = 6;
+	vector<vector<double> > sequence0 = {
+			{0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
+			{0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
+			{0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
+			{0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
+			{0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
+			{0.0, 0.0, 1.0, 0.0, 0.0, 0.0} };
+	int target0 = 0;
+
+	vector<vector<double> > sequence1 = {
+			{1.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+			{0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+			{0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
+			{0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
+			{0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
+			{0.0, 0.0, 0.0, 0.0, 0.0, 1.0} };
+	int target1 = 1;
+
+	vector<vector<double> > sequence2 = {
+			{0.0, 0.0, 0.0, 0.0, 0.0, 1.0},
+			{0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
+			{0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
+			{0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
+			{0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+			{1.0, 0.0, 0.0, 0.0, 0.0, 0.0} };
+	int target2 = 2;
+
+	vector<vector<double> > sequence3 = {
+			{0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
+			{0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
+			{0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
+			{0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
+			{0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
+			{0.0, 0.0, 1.0, 0.0, 0.0, 0.0} };
+	int target3 = 3;
+} Dataset;
+
 int main(int argc, char *argv[]) {
 	cout << "Program initializing" << endl;
 	if (argc < 3) {
-		cout << argv[0] << " <learning rate> <decay rate> <overlap> <size ...>" << endl;
+		cout << argv[0] << " <learning rate> <decay rate> <size ...>" << endl;
 		return -1;
 	}
 
-	int updatePoints = 10;
+	int updatePoints = 100;
 	int savePoints = 10;
-	int maxEpoch = 10;
-	int trainingSize = 500;
-	int overlap = atof(argv[3]);
+	int maxEpoch = 1000;
 	int sumNeurons = 0;
-	double errorBound = 0.01;
-	double mse = 0;
+	double mse1 = 0, mse2 = 0, mse3 = 0, mse4 = 0;
 	double learningRate = atof(argv[1]), decayRate = atof(argv[2]);
 	long long networkStart, networkEnd, sumTime = 0;
 
@@ -61,7 +97,7 @@ int main(int argc, char *argv[]) {
 	ostringstream errorDataFileName;
 	errorDataFileName << "/u/trabucco/Desktop/Sequential_Convergence_Data_Files/" <<
 			(getDate()->tm_year + 1900) << "-" << (getDate()->tm_mon + 1) << "-" << _day <<
-			"_Multicore-SNN-Error_" << learningRate <<
+			"_Single-Core-SNN-Error_" << learningRate <<
 			"-learning_" << decayRate << "-decay.csv";
 	ofstream errorData(errorDataFileName.str(), ios::app);
 	if (!errorData.is_open()) return -1;
@@ -69,7 +105,7 @@ int main(int argc, char *argv[]) {
 	ostringstream timingDataFileName;
 	timingDataFileName << "/u/trabucco/Desktop/Sequential_Convergence_Data_Files/" <<
 			(getDate()->tm_year + 1900) << "-" << (getDate()->tm_mon + 1) << "-" << _day <<
-			"_Multicore-SNN-Timing_" << learningRate <<
+			"_Single-Core-SNN-Timing_" << learningRate <<
 			"-learning_" << decayRate << "-decay.csv";
 	ofstream timingData(timingDataFileName.str(), ios::app);
 	if (!timingData.is_open()) return -1;
@@ -77,7 +113,7 @@ int main(int argc, char *argv[]) {
 	ostringstream accuracyDataFileName;
 	accuracyDataFileName << "/u/trabucco/Desktop/Sequential_Convergence_Data_Files/" <<
 			(getDate()->tm_year + 1900) << "-" << (getDate()->tm_mon + 1) << "-" << _day <<
-			"_Multicore-SNN-Accuracy_" << learningRate <<
+			"_Single-Core-SNN-Accuracy_" << learningRate <<
 			"-learning_" << decayRate << "-decay.csv";
 	ofstream accuracyData(accuracyDataFileName.str(), ios::app);
 	if (!accuracyData.is_open()) return -1;
@@ -85,77 +121,107 @@ int main(int argc, char *argv[]) {
 	ostringstream outputDataFileName;
 	outputDataFileName << "/u/trabucco/Desktop/Sequential_Convergence_Data_Files/" <<
 			(getDate()->tm_year + 1900) << "-" << (getDate()->tm_mon + 1) << "-" << _day <<
-			"_Multicore-SNN-Output_" << learningRate <<
+			"_Single-Core-SNN-Output_" << learningRate <<
 			"-learning_" << decayRate << "-decay.csv";
 	ofstream outputData(outputDataFileName.str(), ios::app);
 	if (!outputData.is_open()) return -1;
 	outputData << endl << endl;
 
 
-	networkStart = getMSec();
-	DatasetAdapter dataset = DatasetAdapter();
-	networkEnd = getMSec();
-	cout << "Language Dataset loaded in " << (networkEnd - networkStart) << "msecs" << endl;
+	Dataset dataset;
+	OutputTarget target(4, 4);
+	cout << "Experiment loaded" << endl;
 
 
-	SerriformNetwork network = SerriformNetwork(dataset.getCharSize(), overlap, learningRate, decayRate);
-	OutputTarget target = OutputTarget(dataset.getCharSize(), dataset.getCharSize());
+	SerriformNetwork network = SerriformNetwork(dataset.inputSize, learningRate, decayRate);
+	cout << "Network initialized" << endl;
 
 
-	for (int i = 0; i < (argc - 4); i++) {
-		network.addLayer(atoi(argv[4 + i]));
-		sumNeurons += atoi(argv[4 + i]);
-	}  network.addLayer(dataset.getCharSize());
+	for (int i = 0; i < (argc - 3); i++) {
+		network.addLayer(atoi(argv[3 + i]));
+		sumNeurons += atoi(argv[3 + i]);
+	}  network.addLayer(4);
 
 
 	int totalIterations = 0;
 	bool converged = false;
-	for (int e = 0; (e < maxEpoch)/* && (!e || (((mse1 + mse2)/2) > errorBound))*/; e++) {
-		int c = 0, n = 0;
+
+	for (int e = 0; (e < maxEpoch); e++) {
 		vector<double> error, output;
 
 		networkStart = getMSec();
-		for (int i = 0; i < trainingSize && dataset.nextChar(); i++) {
-			DatasetExample data = dataset.getChar();
-			error = network.train(target.getOutputFromTarget(data.current),
-					target.getOutputFromTarget(data.next));
-		}
+		for (int i = 0; i < dataset.inputLength; i++) {
+			error = network.forward(dataset.sequence0[i], target.getOutputFromTarget(dataset.target0));
+		} network.backward(); network.clear();
 
-		dataset.reset();
+		mse1 = 0;
+		for (int i = 0; i < error.size(); i++)
+			mse1 += error[i] * error[i];
+		mse1 /= error.size() * 2;
 
-		for (int i = 0; i < trainingSize && dataset.nextChar(); i++) {
-			DatasetExample data = dataset.getChar();
-			output = network.classify(target.getOutputFromTarget(data.current));
+		for (int i = 0; i < dataset.inputLength; i++) {
+			error = network.forward(dataset.sequence1[i], target.getOutputFromTarget(dataset.target1));
+		} network.backward(); network.clear();
 
-			n++;
-			if (target.getTargetFromOutput(output) == (int)data.next) c++;
-		} networkEnd = getMSec();
+		mse2 = 0;
+		for (int i = 0; i < error.size(); i++)
+			mse2 += error[i] * error[i];
+		mse2 /= error.size() * 2;
+
+		for (int i = 0; i < dataset.inputLength; i++) {
+			error = network.forward(dataset.sequence2[i], target.getOutputFromTarget(dataset.target2));
+		} network.backward(); network.clear();
+
+		mse3 = 0;
+		for (int i = 0; i < error.size(); i++)
+			mse3 += error[i] * error[i];
+		mse3 /= error.size() * 2;
+
+		for (int i = 0; i < dataset.inputLength; i++) {
+			error = network.forward(dataset.sequence3[i], target.getOutputFromTarget(dataset.target3));
+		} network.backward(); network.clear();
+
+		mse4 = 0;
+		for (int i = 0; i < error.size(); i++)
+			mse4 += error[i] * error[i];
+		mse4 /= error.size() * 2;
+
+		int n = 0, c = 0;
+		for (int i = 0; i < dataset.inputLength; i++) {
+			output = network.forward(dataset.sequence0[i]);
+			if (i == (dataset.inputLength - 1)) {
+				n++;
+				if (target.getTargetFromOutput(output) == dataset.target0) c++;
+			}
+		} network.clear(); for (int i = 0; i < dataset.inputLength; i++) {
+			output = network.forward(dataset.sequence1[i]);
+			if (i == (dataset.inputLength - 1)) {
+				n++;
+				if (target.getTargetFromOutput(output) == dataset.target1) c++;
+			}
+		} network.clear(); for (int i = 0; i < dataset.inputLength; i++) {
+			output = network.forward(dataset.sequence2[i]);
+			if (i == (dataset.inputLength - 1)) {
+				n++;
+				if (target.getTargetFromOutput(output) == dataset.target2) c++;
+			}
+
+		} network.clear(); for (int i = 0; i < dataset.inputLength; i++) {
+			output = network.forward(dataset.sequence3[i]);
+			if (i == (dataset.inputLength - 1)) {
+				n++;
+				if (target.getTargetFromOutput(output) == dataset.target3) c++;
+			}
+		} network.clear(); networkEnd = getMSec();
 
 		sumTime += (networkEnd - networkStart);
-		totalIterations += 1;
-
-		mse = 0;
-		for (int i = 0; i < error.size(); i++)
-			mse += error[i] * error[i];
-		mse /= error.size() * 2;
 
 		if (((e + 1) % (maxEpoch / updatePoints)) == 0) {
 			cout << "Epoch " << e << " completed in " << (networkEnd - networkStart) << "msecs" << endl;
-			cout << "Error[" << e << "] = " << mse << endl;
-			cout << "Accuracy[" << e << "] = " << (100.0 * (float)c / (float)n) << endl;
-		} errorData << e << ", " << mse << endl;
+			cout << "Error[" << e << "] = " << ((mse1 + mse2 + mse3 + mse4) / 4) << endl;
+			cout << "Accuracy[" << e << "] = " << (100.0 * (float)c / (float)n) << endl << endl;
+		} errorData << e << ", " << ((mse1 + mse2 + mse3 + mse4) / 4) << endl;
 		accuracyData << e << ", " << (100.0 * (float)c / (float)n) << endl;
-
-		dataset.reset();
-	}
-
-	vector<vector<double> > seed;
-	seed.push_back(target.getOutputFromTarget((int)'I'));
-	for (int i = 0; i < 500; i++) {
-		vector<double> output = network.classify(seed[i]);
-		seed.push_back(output);
-		char text = (char)target.getTargetFromOutput(output);
-		outputData << text;
 	}
 
 	timingData << sumNeurons << ", " << sumTime << ", " << totalIterations << endl;

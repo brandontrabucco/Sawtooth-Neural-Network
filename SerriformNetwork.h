@@ -9,7 +9,6 @@
 #define SERRIFORMNETWORK_H_
 
 #include <vector>
-#include <omp.h>
 #include <iostream>
 #include <string>
 #include <stdlib.h>
@@ -18,19 +17,23 @@ using namespace std;
 
 class SerriformNetwork {
 private:
+	int timestep;
 	int inputSize;
-	int overlap;
 	double learningRate;
 	double decayRate;
-	double **error;
+	vector<vector<double> > error;
+	vector<vector<vector<double> > > errorBuffer;
 	vector<vector<Neuron> > layers;
 	int getPreviousNeurons();
 	int getPreviousNeurons(int l);
 public:
-	SerriformNetwork(int is, int o, double l, double d);
+	SerriformNetwork(int is, double l, double d);
 	virtual ~SerriformNetwork();
 	void addLayer(int size);
-	vector<double> classify(vector<double> input);
+	vector<double> forward(vector<double> input);
+	vector<double> forward(vector<double> input, vector<double> target);
+	void backward();
+	void clear();
 	vector<double> train(vector<double> input, vector<double> target);
 };
 

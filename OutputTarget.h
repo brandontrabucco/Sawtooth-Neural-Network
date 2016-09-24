@@ -16,8 +16,8 @@ using namespace std;
 
 class OutputTarget {
 private:
-	int nodes = 256;
-	int classes = 256;
+	int nodes = 4;
+	int classes = 4;
 	vector<vector<double> > classifiers;
 public:
 	OutputTarget(int n, int c);
