@@ -146,3 +146,17 @@ void SerriformNetwork::clear() {
 	errorBuffer.clear();
 	timestep = -1;
 }
+
+void SerriformNetwork::saveToFile(string fileName) {
+	ofstream learningDataFile(fileName + ".brain");
+	if (!learningDataFile.is_open()) return;
+
+	for (int i = 0; i < layers.size(); i++) {
+		for (int j = 0; j < layers[i].size(); j++) {
+			for (int k = 0; k < layers[i][j].weight.size(); k++) {
+				if (k != 0) learningDataFile << " ";
+				learningDataFile << layers[i][j].weight[k];
+			} learningDataFile << endl;
+		} learningDataFile << endl;
+	}
+}

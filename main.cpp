@@ -34,17 +34,18 @@ struct tm *getDate() {
 
 int main(int argc, char *argv[]) {
 	cout << "Program initializing" << endl;
-	if (argc < 3) {
-		cout << argv[0] << " <learning rate> <decay rate> <size ...>" << endl;
+	if (argc < 5) {
+		cout << argv[0] << " <learning rate> <decay rate> <serr. width> <serr. depth>" << endl;
 		return -1;
 	}
 
 	int updatePoints = 100;
 	int savePoints = 10;
-	int maxEpoch = 1000;
+	int maxEpoch = 100;
 	int sumNeurons = 0;
 	double mse;
 	double learningRate = atof(argv[1]), decayRate = atof(argv[2]);
+	int width = atoi(argv[3]), depth = atoi(argv[4]);
 	long long networkStart, networkEnd, sumTime = 0;
 
 	const int _day = getDate()->tm_mday;
@@ -56,6 +57,12 @@ int main(int argc, char *argv[]) {
 	 * 	This data can be plotted via GNUPlot
 	 *
 	 */
+	ostringstream learningDataFileName;
+	learningDataFileName << "/stash/tlab/trabucco/ANN_Saves/" <<
+			(getDate()->tm_year + 1900) << "-" << (getDate()->tm_mon + 1) << "-" << _day <<
+			"_Multicore-SNN-Data_" << learningRate <<
+			"-learning_" << decayRate << "-decay.csv";
+
 	ostringstream errorDataFileName;
 	errorDataFileName << "/u/trabucco/Desktop/KTH_Convergence_Data_Files/" <<
 			(getDate()->tm_year + 1900) << "-" << (getDate()->tm_mon + 1) << "-" << _day <<
@@ -99,9 +106,9 @@ int main(int argc, char *argv[]) {
 	cout << "Network initialized" << endl;
 
 
-	for (int i = 0; i < (argc - 3); i++) {
-		network.addLayer(atoi(argv[3 + i]));
-		sumNeurons += atoi(argv[3 + i]);
+	for (int i = 0; i < depth; i++) {
+		network.addLayer(width);
+		sumNeurons += width;
 	}  network.addLayer(6);
 
 
@@ -141,6 +148,7 @@ int main(int argc, char *argv[]) {
 			cout << "Epoch " << e << " completed in " << (networkEnd - networkStart) << "msecs" << endl;
 			cout << "Error[" << e << "] = " << (mse) << endl;
 			cout << "Accuracy[" << e << "] = " << (100.0 * (float)c / (float)n) << endl << endl;
+			if (((e + 1) % (maxEpoch / savePoints)) == 0) network.saveToFile(learningDataFileName.str());
 		} errorData << e << ", " << (mse) << endl;
 		accuracyData << e << ", " << (100.0 * (float)c / (float)n) << endl;
 	}

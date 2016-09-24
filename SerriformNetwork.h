@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <stdlib.h>
 #include <omp.h>
@@ -37,6 +38,7 @@ public:
 	void backward();
 	void clear();
 	vector<double> train(vector<double> input, vector<double> target);
+	void saveToFile(string fileName);
 };
 
 #endif /* SERRIFORMNETWORK_H_ */
