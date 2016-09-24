@@ -16,11 +16,11 @@ using namespace std;
 
 class OutputTarget {
 private:
-	int nodes = 4;
-	int classes = 4;
+	int nodes;
+	int classes;
 	vector<vector<double> > classifiers;
 public:
-	OutputTarget(int n, int c);
+	OutputTarget(int n);
 	~OutputTarget();
 	vector<double> getOutputFromTarget(int c);
 	int getTargetFromOutput(vector<double> output);

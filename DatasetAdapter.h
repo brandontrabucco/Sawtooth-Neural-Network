@@ -17,27 +17,43 @@
 using namespace std;
 
 typedef struct {
-	vector<unsigned char> text;
+	vector<vector<double> > trainingVideos;
+	vector<vector<double> > testVideos;
+	vector<int> trainingLabels;
+	vector<int> testLabels;
 } Dataset;
 
 typedef struct {
-	unsigned char current;
-	unsigned char next;
+	vector<double> frame;
+	int label;
 } DatasetExample;
 
 class DatasetAdapter {
 private:
+	const int range = 255;
+	const int frameSize = 300;
+	const int encodedSize = 301;
+	const char frameEnd = '\f';
+	const char videoEnd = '\v';
+	int trainingIndex;
+	int testIndex;
+	int trainingFrameIndex;
+	int testFrameIndex;
 	Dataset dataset;
-	const int charSize = 256;
-	int charIndex;
 public:
 	DatasetAdapter();
 	virtual ~DatasetAdapter();
-	int getCharSize();
-	int getDatasetSize();
-	bool nextChar();
-	bool isLastChar();
-	DatasetExample getChar();
+	int getFrameSize();
+	int getTrainingSize();
+	int getTestSize();
+	bool nextTrainingVideo();
+	bool nextTestVideo();
+	bool nextTrainingFrame();
+	bool nextTestFrame();
+	bool isLastTrainingFrame();
+	bool isLastTestFrame();
+	DatasetExample getTrainingFrame();
+	DatasetExample getTestFrame();
 	void reset();
 };
 

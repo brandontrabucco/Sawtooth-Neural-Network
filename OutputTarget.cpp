@@ -7,11 +7,11 @@
 
 #include "OutputTarget.h"
 
-OutputTarget::OutputTarget(int n, int c) {
+OutputTarget::OutputTarget(int n) {
 	nodes = n;
-	classes = c;
+	classes = n;
 
-	for (int i = 0; i < c; i++) {
+	for (int i = 0; i < n; i++) {
 		vector<double> temp;
 		for (int j = 0; j < n; j++) {
 			if (i == j) temp.push_back(1.0);
