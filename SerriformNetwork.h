@@ -12,6 +12,7 @@
 #include <iostream>
 #include <string>
 #include <stdlib.h>
+#include <omp.h>
 #include "Neuron.h"
 using namespace std;
 

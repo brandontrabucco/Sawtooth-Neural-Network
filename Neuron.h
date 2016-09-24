@@ -24,6 +24,7 @@ private:
 	double activatePrime(double input);
 public:
 	vector<double> weight;
+	vector<double> delta;
 	vector<vector<double> > impulse;
 	vector<double> activation;
 	vector<double> activationPrime;
@@ -31,6 +32,7 @@ public:
 	~Neuron();
 	double forward(vector<double> input);
 	vector<double> backward(double errorPrime, double learningRate, int t, int length);
+	void update();
 	void clear();
 };
 

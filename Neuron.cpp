@@ -17,6 +17,7 @@ Neuron::Neuron(int connections) {
 	normal_distribution<double> d(0, 1);
 	for (int i = 0; i < connections; i++) {
 		weight.push_back(d(g));
+		delta.push_back(0);
 	}
 }
 
@@ -58,12 +59,19 @@ vector<double> Neuron::backward(double errorPrime, double learningRate, int t, i
 	// update all weights
 	for (int i = 0; i < weight.size(); i++) {
 		weightedError.push_back(errorPrime * weight[i] * activationPrime[t]);
-		weight[i] -= (learningRate * errorPrime * activationPrime[t] * impulse[t][i]) / length;
+		delta[i] += (learningRate * errorPrime * activationPrime[t] * impulse[t][i]) / length;
 	} return weightedError;
+}
+
+void Neuron::update() {
+	for (int i = 0; i < weight.size(); i++) {
+		weight[i] -= delta[i];
+	} fill(delta.begin(), delta.end(), 0.0);
 }
 
 void Neuron::clear() {
 	impulse.clear();
 	activation.clear();
 	activationPrime.clear();
+	fill(delta.begin(), delta.end(), 0.0);
 }

@@ -102,6 +102,8 @@ void SerriformNetwork::backward() {
 						errorBuffer[timestep - 1][k][l] += temp[offset];
 						offset++;
 					}
+				} else {
+					layers[i][j].update();
 				}
 			}
 		} learningRate *= decayRate;
