@@ -18,6 +18,7 @@ using namespace std;
 
 class SerriformNetwork {
 private:
+	int maxLayerSize;
 	int timestep;
 	int inputSize;
 	double learningRate;
