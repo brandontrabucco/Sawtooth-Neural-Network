@@ -1,2 +1,2 @@
 # Serriform-Neural-Network
-This is a c++ implementation of a Serriform Neural Network--a network architecture that I developed while at Teuscher Lab at Portland State University. This archirtechure was designed to have the benefits of recurrent nets, without the large training time of RNN, and computational complexity of LSTM.
+This is a c++ implementation of a Serriform Neural Network--a network architecture that I invented while at Teuscher Lab at Portland State University. This archirtechure is faster at learning, can be parallelized further, and takes less computing resources to run than existing LSTM and TDNN methods. More research is needed implementing this algorithm on complex tasks like computer vision.
